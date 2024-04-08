@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "src"
+description = "Code to build the PTradutor dataset."
+readme = "README.md"
+version = "0.0.1"
+dependencies = [
+    "deep_translator==1.11.4",
+    "fire==0.6.0",
+    "tqdm==4.66.2",
+    "datasets==2.18.0"
+]
+requires-python = "~=3.11"
+
+[project.optional-dependencies]
+test = ["pytest==8.1.1"]
+lint = ["ruff"]
+
+[project.scripts]
+list_languages = "src:list_languages"

@@ -1,0 +1,1 @@
+from src.translator import list_languages
