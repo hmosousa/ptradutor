@@ -1,11 +1,16 @@
 import json
+import logging
 
 from src.constants import DATA_PATH
 
 HF_PATH = DATA_PATH / "hf" / "PTradutor"
 HF_PATH.mkdir(exist_ok=True)
 
+logging.basicConfig(level=logging.INFO)
+
+
 for filepath in DATA_PATH.glob("*.json"):
+    logging.info(f"Formatting {filepath.stem}.")
     lang = filepath.stem
     content = json.load(filepath.open())
 
