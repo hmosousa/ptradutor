@@ -13,6 +13,9 @@ class Translator:
         self._target = target
         self._engine = GoogleTranslator(source=source, target=target)
 
+    def __call__(self, text: str) -> str:
+        return self.translate(text)
+
     def translate(self, text):
         if len(text) <= 5000:
             return self._translate(text)
