@@ -17,6 +17,10 @@ class TranslationDataset:
             self._data = {}
 
     @property
+    def name(self):
+        return self._name
+    
+    @property
     def ids(self):
         return list(self._data.keys())
 
