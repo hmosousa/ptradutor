@@ -59,15 +59,16 @@ def main(lang="en", name="pt_vid", domain="journalistic", split="train"):
 
             logging.info("Saving translations.")
             for idx, text, result in zip(bid, btext, results):
-                data = {
-                    "idx": idx,
-                    "source": name,
-                    "domain": domain,
-                    "split": split,
-                    "pt": text,
-                    "en": result,
-                }
-                translation_ds.add(idx, data)
+                if result:
+                    data = {
+                        "idx": idx,
+                        "source": name,
+                        "domain": domain,
+                        "split": split,
+                        "pt": text,
+                        "en": result,
+                    }
+                    translation_ds.add(idx, data)
             translation_ds.save()
 
 
