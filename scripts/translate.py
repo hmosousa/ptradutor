@@ -6,10 +6,10 @@ from tqdm import tqdm
 from src.data import TranslationDataset, load_dataset
 from src.translator import Translator
 
-
 logging.basicConfig(level=logging.INFO)
 
-def main(lang="en", name="pt_vid", domain="default", split="train"):
+
+def main(lang="en", name="dsl_tl", domain="default", split="train"):
     """
     name = ["pt_vid", "frmt", "dsl_tl"]
 
@@ -28,13 +28,17 @@ def main(lang="en", name="pt_vid", domain="default", split="train"):
     """
     translator = Translator(source="pt", target=lang)
 
-    idx = 0
-    
-    logging.info(f"Translating dataset {name}.")
+    logging.info(f"Loading dataset {name}.")
     dataset = load_dataset(name)
-    source_ds = TranslationDataset(f"{lang}_{name}_{domain}_{split}")
-    for text in tqdm(dataset[domain][split]):
-        if idx not in source_ds:
+    texts = dataset[domain][split]
+
+    ds_name = f"{lang}_{name}_{domain}_{split}"
+    logging.info(f"Creating dataset {ds_name}. (loading in case it exists)")
+    translation_ds = TranslationDataset(ds_name)
+
+    logging.info(f"Translating dataset {name}.")
+    for idx, text in tqdm(enumerate(texts)):
+        if idx not in translation_ds:
             try:
                 translate = translator.translate(text)
                 data = {
@@ -42,18 +46,20 @@ def main(lang="en", name="pt_vid", domain="default", split="train"):
                     "source": name,
                     "domain": domain,
                     "split": split,
-                    "pt": text, 
-                    "en": translate
+                    "pt": text,
+                    "en": translate,
                 }
-                source_ds.add(idx, data)
+                translation_ds.add(idx, data)
             except Exception as e:
                 print(f"Error translating {idx}: {e}")
         else:
             logging.info(f"Skipping {idx}.")
-        idx += 1
+
         if idx % 100 == 0:
-            source_ds.save()
-    source_ds.save()
+            logging.info(f"Saving dataset {ds_name}.")
+            translation_ds.save()
+
+    translation_ds.save()
 
 
 if __name__ == "__main__":
