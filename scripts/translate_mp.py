@@ -11,6 +11,9 @@ from src.translator import Translator
 logging.basicConfig(level=logging.INFO)
 
 
+BATCH_SIZE = 100
+
+
 def main(lang="en", name="pt_vid", domain="journalistic", split="train"):
     """
     name = ["pt_vid", "frmt", "dsl_tl"]
@@ -49,8 +52,10 @@ def main(lang="en", name="pt_vid", domain="journalistic", split="train"):
     texts = [texts[idx] for idx in missing_ids]
 
     logging.info("Batching the data.")
-    bids = [missing_ids[i : i + 100] for i in range(0, len(missing_ids), 100)]
-    btexts = [texts[i : i + 100] for i in range(0, len(texts), 100)]
+    bids = [
+        missing_ids[i : i + BATCH_SIZE] for i in range(0, len(missing_ids), BATCH_SIZE)
+    ]
+    btexts = [texts[i : i + BATCH_SIZE] for i in range(0, len(texts), BATCH_SIZE)]
 
     logging.info("Translating texts.")
     for bid, btext in zip(bids, btexts):
