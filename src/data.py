@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import Dict, List
 
 import datasets
 
@@ -19,7 +19,7 @@ class TranslationDataset:
     @property
     def name(self):
         return self._name
-    
+
     @property
     def ids(self):
         return list(self._data.keys())
