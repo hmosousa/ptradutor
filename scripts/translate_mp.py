@@ -1,6 +1,5 @@
 import concurrent.futures
 import logging
-import time
 
 from fire import Fire
 from tqdm import tqdm
@@ -11,7 +10,7 @@ from src.translator import Translator
 logging.basicConfig(level=logging.INFO)
 
 
-BATCH_SIZE = 100
+BATCH_SIZE = 1_000
 
 
 def main(lang="en", name="pt_vid", domain="journalistic", split="train"):
@@ -36,14 +35,13 @@ def main(lang="en", name="pt_vid", domain="journalistic", split="train"):
     def translate(text):
         try:
             translate = translator(text)
-            time.sleep(3)
             return translate
         except Exception as e:
             logging.error(f"Error translating {text}: {e}")
 
     logging.info(f"Translating dataset {name}.")
     dataset = load_dataset(name)
-    translation_ds = TranslationDataset(f"{lang}_{name}_{domain}_{split}_temp")
+    translation_ds = TranslationDataset(f"{lang}_{name}_{domain}_{split}")
 
     logging.info("Filtering missing translations.")
     texts = dataset[domain][split]
@@ -58,11 +56,9 @@ def main(lang="en", name="pt_vid", domain="journalistic", split="train"):
     btexts = [texts[i : i + BATCH_SIZE] for i in range(0, len(texts), BATCH_SIZE)]
 
     logging.info("Translating texts.")
-    for bid, btext in zip(bids, btexts):
+    for bid, btext in tqdm(zip(bids, btexts), total=len(bids)):
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            results = list(tqdm(executor.map(translate, btext), total=len(btext)))
-
-            logging.info("Saving translations.")
+            results = executor.map(translate, btext)
             for idx, text, result in zip(bid, btext, results):
                 if result:
                     data = {
@@ -74,7 +70,9 @@ def main(lang="en", name="pt_vid", domain="journalistic", split="train"):
                         "en": result,
                     }
                     translation_ds.add(idx, data)
-            translation_ds.save()
+
+        logging.debug("Saving the dataset.")
+        translation_ds.save()
 
 
 if __name__ == "__main__":
