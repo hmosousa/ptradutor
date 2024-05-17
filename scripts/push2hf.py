@@ -12,6 +12,7 @@ N_CHUNKS = 5
 
 logging.basicConfig(level=logging.INFO)
 
+texts = set()  # to keep track of the files that are already in the dataset
 train, test = [], []
 for filepath in DATA_PATH.glob("*.json"):
     logging.info(f"Formatting {filepath.stem}.")
@@ -19,6 +20,11 @@ for filepath in DATA_PATH.glob("*.json"):
     content = json.load(filepath.open())
     for id_, info in content.items():
         split = info.pop("split")
+        
+        if info["pt"] in texts:
+            continue
+        texts.add(info["pt"])
+
         if split == "train":
             train.append(info)
         else:
