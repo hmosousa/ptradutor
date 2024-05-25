@@ -34,7 +34,7 @@ for filepath in DATA_PATH.glob("*.json"):
 
         # remove if the text exceed the 1024 tokens
         tokens = tokenizer(f"{info['pt']} {info['en']}")
-        if len(tokens["input_ids"]) > 950:  # leave some margin for extra tokens
+        if len(tokens["input_ids"]) > 900:  # leave some margin for extra tokens
             continue
 
         # remove if the text contains HTML tags
