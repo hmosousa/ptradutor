@@ -48,8 +48,6 @@ for filepath in DATA_PATH.glob("*.json"):
         else:
             train.append(info)
 
-print(valid)
-
 train_path = HF_PATH / "train.jsonl"
 n_train = len(train)
 logging.debug(f"Train size: {n_train}")
