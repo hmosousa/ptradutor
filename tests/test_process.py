@@ -7,10 +7,14 @@ from src.process import (
     has_url,
     is_pagination,
     is_unfinished,
+    remove_hashtags,
+    remove_html_tags,
+    remove_mentions,
+    remove_retweets,
+    remove_urls,
     starts_with_month,
     valid_n_tokens,
 )
-
 
 def test_valid_n_tokens():
     assert not valid_n_tokens("Hi")
@@ -68,3 +72,35 @@ def test_has_html_tags():
         """Não há plugins para instalar ou ativar. <a href="%1$s"title="Voltar para o Painel">Voltar para o Painel</a>"""
     )
     assert not has_html_tags("This is a paragraph.")
+
+
+def test_remove_hashtags():
+    assert remove_hashtags("this has an #hashtag.") == "this has an ."
+    assert remove_hashtags("this does not.") == "this does not."
+
+
+def test_remove_mentions():
+    assert remove_mentions("i am tagging @you") == "i am tagging"
+    assert remove_mentions("i am not tagging you") == "i am not tagging you"
+    assert remove_mentions("@ArrobaTuga Look, Cristina is") == "Look, Cristina is"
+    assert remove_mentions("@_zucacritica @primaguiar I realized...") == "I realized..."
+
+
+def test_remove_urls():
+    assert remove_urls("this is an url https://www.google.com") == "this is an url"
+    assert remove_urls("this is an url www.google.com") == "this is an url"
+    assert remove_urls("this is an url google.com") == "this is an url"
+
+
+def test_remove_retweets():
+    assert remove_retweets("RT @user: this is a retweet") == "this is a retweet"
+
+
+def test_remove_html_tags():
+    assert remove_html_tags("<p>This is a paragraph.</p>") == "This is a paragraph."
+    assert (
+        remove_html_tags(
+            'Não há plugins para instalar ou ativar. <a href="%1$s"title="Voltar para o Painel">Voltar para o Painel</a>'
+        )
+        == "Não há plugins para instalar ou ativar. Voltar para o Painel"
+    )

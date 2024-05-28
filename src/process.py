@@ -1,11 +1,14 @@
+import multiprocessing as mp
 import re
 
+from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
 
 HTML_RE = re.compile(r"<[^>]+>")
 URL_RE = re.compile(r"(https?://)?(www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}")
 HASHTAG_RE = re.compile(r"#(\w+)")
-MENTION_RE = re.compile(r"(?<=@)\w+")
+MENTION_RE = re.compile(r"@(\w+)")
+RETWEET_RE = re.compile(r"RT @(\w+):")
 
 TOKENIZER = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
 
@@ -85,14 +88,49 @@ def has_html_tags(text):
 def huggingface_dataset_filter(dataset):
     return dataset.filter(
         lambda x: valid_n_tokens(f"{x['pt']} {x['en']}")
-        and not has_hashtag(x["pt"])
-        and not has_mention(x["pt"])
-        and not has_url(x["pt"])
         and not starts_with_month(x["pt"])
         and not is_unfinished(x["pt"])
         and not is_pagination(x["pt"])
         and not has_too_long_word(x["pt"])
-        and not has_invalid_start(x["pt"])
-        and not has_html_tags(x["pt"]),
-        num_proc=96
+        and not has_invalid_start(x["pt"]),
+        num_proc=mp.cpu_count(),
+    )
+
+
+def remove_html_tags(text):
+    soup = BeautifulSoup(text, "html.parser")
+    return soup.get_text()
+
+
+def remove_hashtags(text):
+    return HASHTAG_RE.sub("", text).strip()
+
+
+def remove_mentions(text):
+    return MENTION_RE.sub("", text).strip()
+
+
+def remove_retweets(text):
+    return RETWEET_RE.sub("", text).strip()
+
+
+def remove_urls(text):
+    return URL_RE.sub("", text).strip()
+
+
+def huggingface_dataset_transform(dataset):
+    def _transform(text):
+        text = remove_retweets(text)
+        text = remove_mentions(text)
+        text = remove_hashtags(text)
+        text = remove_urls(text)
+        text = remove_html_tags(text)
+        return text
+
+    return dataset.map(
+        lambda x: {
+            "pt": _transform(x["pt"]),
+            "en": _transform(x["en"]),
+        },
+        num_proc=mp.cpu_count(),
     )

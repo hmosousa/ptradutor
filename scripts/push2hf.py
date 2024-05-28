@@ -3,11 +3,12 @@ import logging
 
 import datasets
 from fire import Fire
+from tqdm import tqdm
 
 from src.constants import DATA_PATH
-from src.process import huggingface_dataset_filter, valid_n_tokens
+from src.process import huggingface_dataset_filter, huggingface_dataset_transform, valid_n_tokens, MAX_N_TOKENS
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def raw():
@@ -17,25 +18,31 @@ def raw():
         logging.info(f"Formatting {filepath.stem}.")
         content = json.load(filepath.open())
 
-        for id_, info in content.items():
+        for _, info in tqdm(content.items()):
             split = info.pop("split")
 
             # remove duplicates
             if info["pt"].lower() in texts:
                 continue
             texts.add(info["pt"].lower())
-
-            # remove if the text exceed the 1024 tokens
-            if valid_n_tokens(
-                f"{info['pt']} {info['en']}", min_n_tokens=0
-            ):  # leave some margin for extra tokens
-                continue
+                
+            # remove if the text exceeds MAX_N_TOKENS
+            prompt = f"{info['pt']} {info['en']}"
+            if len(prompt) > MAX_N_TOKENS:  # to make it run faster     
+                if not valid_n_tokens(
+                    f"{info['pt']} {info['en']}", min_n_tokens=0
+                ):  # leave some margin for extra tokens
+                    continue
 
             if split == "test":
                 test.append(info)
             else:
                 train.append(info)
 
+    logging.debug(f"Train: {len(train)}")
+    logging.debug(f"Test: {len(test)}")
+
+    logging.info("Pushing to Hugging Face Datasets.")
     raw_ds = datasets.DatasetDict(
         {
             "train": datasets.Dataset.from_list(train),
@@ -49,10 +56,11 @@ def raw():
 def clean():
     raw_ds = datasets.load_dataset("liaad/PTradutor", "raw")
     clean_ds = huggingface_dataset_filter(raw_ds)
+    clean_ds = huggingface_dataset_transform(clean_ds)
     clean_ds.push_to_hub("liaad/PTradutor", "clean")
 
 
-def main(subset: str = "clean"):
+def main(subset: str = "raw"):
     match subset:
         case "raw":
             raw()
