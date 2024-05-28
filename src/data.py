@@ -44,15 +44,6 @@ class TranslationDataset:
         return id in self._data
 
 
-def load_frmt() -> Dict:
-    dataset = datasets.load_dataset("LCA-PORVID/frmt")
-    test = dataset["test"]
-    test = test.filter(lambda x: x["label"] == 0)
-    test = test["text"]
-    data = {"default": {"test": test}}
-    return data
-
-
 def load_dsl_tl() -> Dict:
     dataset = datasets.load_dataset("LCA-PORVID/dsl_tl")
 
@@ -83,8 +74,6 @@ def load_pt_vid() -> Dict:
 
 def load_dataset(name: str) -> List[str]:
     match name:
-        case "frmt":
-            return load_frmt()
         case "dsl_tl":
             return load_dsl_tl()
         case "pt_vid":

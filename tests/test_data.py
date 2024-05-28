@@ -1,12 +1,4 @@
-from src.data import load_dsl_tl, load_frmt, load_pt_vid
-
-
-def test_load_frmt():
-    data = load_frmt()
-    data = data["default"]
-    assert "test" in data
-    assert len(data["test"]) == 985
-    assert isinstance(data["test"][0], str)
+from src.data import load_dsl_tl, load_pt_vid
 
 
 def test_load_dsl_tl():

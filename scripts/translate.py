@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 def main(lang="en", name="dsl_tl", domain="default", split="train"):
     """
-    name = ["pt_vid", "frmt", "dsl_tl"]
+    name = ["pt_vid", "dsl_tl"]
 
     Run the following commands to translate the datasets:
 
@@ -23,8 +23,6 @@ def main(lang="en", name="dsl_tl", domain="default", split="train"):
     python scripts/translate.py -l "en" -n "pt_vid" -d "web" -s "train"
     python scripts/translate.py -l "en" -n "dsl_tl" -d "default" -s "train"
     python scripts/translate.py -l "en" -n "dsl_tl" -d "default" -s "test"
-    python scripts/translate.py -l "en" -n "frmt" -d "default" -s "train"
-    python scripts/translate.py -l "en" -n "frmt" -d "default" -s "test"
     """
     translator = Translator(source="pt", target=lang)
 
