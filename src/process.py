@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
 
 HTML_RE = re.compile(r"<[^>]+>")
-URL_RE = re.compile(r"(https?://)?(www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}")
+URL_RE = re.compile(r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#…])*")
 HASHTAG_RE = re.compile(r"#(\w+)")
 MENTION_RE = re.compile(r"@(\w+)")
 RETWEET_RE = re.compile(r"RT @(\w+):")

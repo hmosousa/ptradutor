@@ -90,6 +90,7 @@ def test_remove_urls():
     assert remove_urls("this is an url https://www.google.com") == "this is an url"
     assert remove_urls("this is an url www.google.com") == "this is an url"
     assert remove_urls("this is an url google.com") == "this is an url"
+    assert remove_urls("FC Porto frente ao Manchester City... https://t.co/y5VnxL9…") == "FC Porto frente ao Manchester City..."
 
 
 def test_remove_retweets():
