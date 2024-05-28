@@ -1,6 +1,4 @@
-# Público News Translator
-
-Translate news articles [scraped](https://github.com/hmosousa/publico_scraper) from Jornal Público into multiple languages using Google Translate.
+# PTradutor
 
 ## Getting Started
 
@@ -21,37 +19,14 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-### Downloading the Data
-
-To download the news articles from Jornal Público, execute the following command:
+### Translating 
 
 ```sh
-sh scripts/download.sh
+python scripts/translate.py -l <target_language> -n <dataset> -d <domain> -s <split>
 ```
 
-### Translating the News
+Please replace `<target_language>` with the code of the language you want to translate the texts into. Run `list_languages` in the terminal to check the available languages.
 
-Before translating the news, we first prepare the data by parsing it to remove metadata and eliminate duplicates:
-
-```sh
-python scripts/parse.py
-```
-
-This process generates a file named `pt.jsonl` in the `data` directory, containing all news articles ready for translation. To translate these articles into a desired language, use:
-
-```sh
-python scripts/translate.py --lang=<target_language>
-```
-
-Please replace `<target_language>` with the code of the language you want to translate the articles into.
-
-#### Language Support
-
-The translation tool supports multiple languages. To check the list of available languages for translation, run the following command in your terminal:
-
-```sh
-list_languages
-```
 
 ## License
 
