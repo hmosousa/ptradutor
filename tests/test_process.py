@@ -1,24 +1,30 @@
 from src.process import (
     has_hashtag,
     has_html_tags,
+    has_invalid_middle,
     has_invalid_start,
     has_mention,
     has_too_long_word,
     has_url,
-    is_pagination,
-    is_unfinished,
+    remove_bullets,
+    remove_cod_literature,
     remove_hashtags,
     remove_html_tags,
     remove_mentions,
     remove_retweets,
+    remove_three_dashes,
     remove_urls,
+    bad_translation,
     starts_with_month,
     valid_n_tokens,
-    has_invalid_middle,
+    has_more_than_three_points,
+    has_valid_brackets,
 )
+
 
 def test_valid_n_tokens():
     assert not valid_n_tokens("Hi")
+    assert not valid_n_tokens("Crianças. Kids.")
 
 
 def test_has_hashtag():
@@ -44,18 +50,10 @@ def test_starts_with_month():
     assert starts_with_month("january is the first month of the year")
 
 
-def test_is_unfinished():
-    assert is_unfinished("This text (...) incomplete")
-    assert is_unfinished("This text is [...] incomplete")
-    assert not is_unfinished("This text is not incomplete")
-
-
-def test_is_pagination():
-    assert is_pagination("Results/Page")
-
-
 def test_has_too_long_word():
     assert has_too_long_word("thissentencehasaverylongwordthatshouldbedropped")
+    assert has_too_long_word("thissentencehasaverylong")
+    assert not has_too_long_word("thissentencehasavery")
 
 
 def test_has_invalid_start():
@@ -78,6 +76,8 @@ def test_has_html_tags():
 def test_remove_hashtags():
     assert remove_hashtags("this has an #hashtag.") == "this has an ."
     assert remove_hashtags("this does not.") == "this does not."
+    assert remove_hashtags("#hashtag this does not.") == "this does not."
+    assert remove_hashtags("this #hashtag does not.") == "this  does not."
 
 
 def test_remove_mentions():
@@ -91,7 +91,10 @@ def test_remove_urls():
     assert remove_urls("this is an url https://www.google.com") == "this is an url"
     assert remove_urls("this is an url www.google.com") == "this is an url"
     assert remove_urls("this is an url google.com") == "this is an url"
-    assert remove_urls("FC Porto frente ao Manchester City... https://t.co/y5VnxL9…") == "FC Porto frente ao Manchester City..."
+    assert (
+        remove_urls("FC Porto frente ao Manchester City... https://t.co/y5VnxL9…")
+        == "FC Porto frente ao Manchester City..."
+    )
 
 
 def test_remove_retweets():
@@ -111,4 +114,66 @@ def test_remove_html_tags():
 def test_has_invalid_middle():
     assert has_invalid_middle("List of recent / changes")
     assert has_invalid_middle("List of recent @ changes")
-    
+
+
+def test_remove_cod_literature():
+    assert (
+        remove_cod_literature(
+            "tanto e dá tanto COD _ L0009P0298X dinheiro que fecham os olhos."
+        )
+        == "tanto e dá tanto dinheiro que fecham os olhos."
+    )
+    assert remove_cod_literature("This code shouldnt be removed.") == "This code shouldnt be removed."
+
+
+def test_remove_bullets():
+    assert remove_bullets("1. lugar") == "lugar"
+    assert remove_bullets("132. lugar") == "lugar"
+    assert (
+        remove_bullets("not in the the middle 1. lugar")
+        == "not in the the middle 1. lugar"
+    )
+    assert remove_bullets("1. lugar 2. lugar") == "lugar 2. lugar"
+    assert remove_bullets("lugar lugar") == "lugar lugar"
+
+
+def test_three_dashes():
+    assert (
+        remove_three_dashes(
+            "--- Citação de: naughtykisser em 29 de Novembro de 2010 ---Olá comunidade!"
+        )
+        == "Olá comunidade!"
+    )
+    assert (
+        remove_three_dashes(
+            "--- Citação de: naughtykisser em 29 de Novembro de 2010 ---Olá comunidade!"
+        )
+        == "Olá comunidade!"
+    )
+    assert remove_three_dashes("This - should - not - be - removed") == "This - should - not - be - removed"
+
+def test_bad_translation():
+    assert bad_translation("This is the original sentence", "short")
+    assert bad_translation(
+        "This is the original sentence",
+        "a very long and unnecessary translation that is just wrong",
+    )
+
+
+def test_has_more_than_three_points():
+    assert not has_more_than_three_points("This is a sentence with... three points")
+    assert has_more_than_three_points(
+        "This is a sentence with........ more than three points"
+    )
+
+
+def test_has_valid_brackets():
+    assert not has_valid_brackets("This is a sentence with (an open parenthesis")
+    assert not has_valid_brackets("This is a sentence with an open parenthesis)")
+    assert has_valid_brackets("This is a sentence with (a closed parenthesis)")
+    assert not has_valid_brackets(
+        "This is a sentence with (a closed parenthesis) and (an open parenthesis"
+    )
+    assert has_valid_brackets(
+        "This is a sentence with (a closed parenthesis) and (an open parenthesis)"
+    )

@@ -5,10 +5,17 @@ from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
 
 HTML_RE = re.compile(r"<[^>]+>")
-URL_RE = re.compile(r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#…])*")
+URL_RE = re.compile(
+    r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#…])*"
+)
 HASHTAG_RE = re.compile(r"#(\w+)")
 MENTION_RE = re.compile(r"@(\w+)")
 RETWEET_RE = re.compile(r"RT @(\w+):")
+COD_RE = re.compile(r"COD _ (\w+) ")
+BULLET_RE = re.compile(r"^(\d)+.\s")
+THREE_DASH_RE = re.compile(r"---.*---")
+MORE_THAN_THREE_POINTS_RE = re.compile(r"\.{4,}")
+
 
 TOKENIZER = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
 
@@ -19,12 +26,30 @@ INVALID_START = [
     "> Home",
     "useful tips",
     "Licenses:",
+    "Search in: ",
+    "Terms of Use - ",
+    "Home page",
+    "Home Page",
+    "Copyright",
+    "Results/Page",
 ]
 
 INVALID_MIDDLE = [
     " @ ",
     " / ",
+    " | ",
+    "[...]",
+    "(...)",
 ]
+
+
+INVALID_END = [
+    " (",
+    "…",
+    "[…]",
+    "(…)",
+]
+
 
 MIN_N_TOKENS = 10
 MAX_N_TOKENS = 900
@@ -49,6 +74,12 @@ def _n_tokens(text):
     return len(TOKENIZER.encode(text))
 
 
+def bad_translation(pt: str, en: str):
+    if 0.8 * len(pt) < len(en) < 1.2 * len(pt):
+        return False
+    return True
+
+
 def valid_n_tokens(text, min_n_tokens=MIN_N_TOKENS, max_n_tokens=MAX_N_TOKENS):
     return min_n_tokens <= _n_tokens(text) <= max_n_tokens
 
@@ -69,16 +100,8 @@ def starts_with_month(text):
     return text.lower().startswith(tuple(MONTHS))
 
 
-def is_unfinished(text):
-    return "[...]" in text or "(...)" in text
-
-
-def is_pagination(text):
-    return "Results/Page" in text
-
-
 def has_too_long_word(text):
-    return any(word for word in text.split(" ") if len(word) > 30)
+    return any(word for word in text.split(" ") if len(word) > 20)
 
 
 def has_invalid_start(text):
@@ -89,19 +112,37 @@ def has_invalid_middle(text):
     return any(True for word in INVALID_MIDDLE if word in text)
 
 
+def has_invalid_end(text):
+    return text.endswith(tuple(INVALID_END))
+
+
 def has_html_tags(text):
     return bool(HTML_RE.search(text))
+
+
+def has_more_than_three_points(text):
+    return bool(MORE_THAN_THREE_POINTS_RE.search(text))
+
+
+def has_valid_brackets(text):
+    return (
+        text.count("(") == text.count(")")
+        and text.count("[") == text.count("]")
+        and text.count("{") == text.count("}")
+    )
 
 
 def huggingface_dataset_filter(dataset):
     return dataset.filter(
         lambda x: valid_n_tokens(f"{x['pt']} {x['en']}")
-        and not starts_with_month(x["pt"])
-        and not is_unfinished(x["pt"])
-        and not is_pagination(x["pt"])
-        and not has_too_long_word(x["pt"])
-        and not has_invalid_start(x["pt"])
-        and not has_invalid_middle(x["pt"]),
+        and not bad_translation(x["pt"], x["en"])
+        and not starts_with_month(x["en"])
+        and not has_too_long_word(x["en"])
+        and not has_invalid_start(x["en"])
+        and not has_invalid_middle(x["en"])
+        and not has_invalid_end(x["en"])
+        and not has_more_than_three_points(x["en"])
+        and has_valid_brackets(x["en"]),
         num_proc=mp.cpu_count(),
     )
 
@@ -127,6 +168,18 @@ def remove_urls(text):
     return URL_RE.sub("", text).strip()
 
 
+def remove_cod_literature(text):
+    return COD_RE.sub("", text).strip()
+
+
+def remove_bullets(text):
+    return BULLET_RE.sub("", text).strip()
+
+
+def remove_three_dashes(text):
+    return THREE_DASH_RE.sub("", text).strip()
+
+
 def huggingface_dataset_transform(dataset):
     def _transform(text):
         text = remove_retweets(text)
@@ -134,6 +187,9 @@ def huggingface_dataset_transform(dataset):
         text = remove_hashtags(text)
         text = remove_urls(text)
         text = remove_html_tags(text)
+        text = remove_cod_literature(text)
+        text = remove_bullets(text)
+        text = remove_three_dashes(text)
         return text
 
     return dataset.map(
