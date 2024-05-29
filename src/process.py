@@ -138,10 +138,13 @@ def huggingface_dataset_filter(dataset):
         and not bad_translation(x["pt"], x["en"])
         and not starts_with_month(x["en"])
         and not has_too_long_word(x["en"])
+        and not has_too_long_word(x["pt"])
         and not has_invalid_start(x["en"])
         and not has_invalid_middle(x["en"])
         and not has_invalid_end(x["en"])
+        and not has_invalid_end(x["pt"])
         and not has_more_than_three_points(x["en"])
+        and not has_more_than_three_points(x["pt"])
         and has_valid_brackets(x["en"]),
         num_proc=mp.cpu_count(),
     )
