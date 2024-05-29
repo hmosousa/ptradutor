@@ -14,6 +14,7 @@ from src.process import (
     remove_urls,
     starts_with_month,
     valid_n_tokens,
+    has_invalid_middle,
 )
 
 def test_valid_n_tokens():
@@ -105,3 +106,9 @@ def test_remove_html_tags():
         )
         == "Não há plugins para instalar ou ativar. Voltar para o Painel"
     )
+
+
+def test_has_invalid_middle():
+    assert has_invalid_middle("List of recent / changes")
+    assert has_invalid_middle("List of recent @ changes")
+    

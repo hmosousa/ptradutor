@@ -8,7 +8,7 @@ from tqdm import tqdm
 from src.constants import DATA_PATH
 from src.process import huggingface_dataset_filter, huggingface_dataset_transform, valid_n_tokens, MAX_N_TOKENS
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def raw():

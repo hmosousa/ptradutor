@@ -21,6 +21,11 @@ INVALID_START = [
     "Licenses:",
 ]
 
+INVALID_MIDDLE = [
+    " @ ",
+    " / ",
+]
+
 MIN_N_TOKENS = 10
 MAX_N_TOKENS = 900
 
@@ -61,7 +66,6 @@ def has_url(text):
 
 
 def starts_with_month(text):
-    # TODO: drop?
     return text.lower().startswith(tuple(MONTHS))
 
 
@@ -81,6 +85,10 @@ def has_invalid_start(text):
     return text.startswith(tuple(INVALID_START))
 
 
+def has_invalid_middle(text):
+    return any(True for word in INVALID_MIDDLE if word in text)
+
+
 def has_html_tags(text):
     return bool(HTML_RE.search(text))
 
@@ -92,7 +100,8 @@ def huggingface_dataset_filter(dataset):
         and not is_unfinished(x["pt"])
         and not is_pagination(x["pt"])
         and not has_too_long_word(x["pt"])
-        and not has_invalid_start(x["pt"]),
+        and not has_invalid_start(x["pt"])
+        and not has_invalid_middle(x["pt"]),
         num_proc=mp.cpu_count(),
     )
 
