@@ -9,6 +9,7 @@ from src.constants import DATA_PATH
 from src.process import (
     huggingface_dataset_filter,
     huggingface_dataset_transform,
+    drop_duplicates,
     valid_n_tokens,
     MAX_N_TOKENS,
 )
@@ -63,6 +64,7 @@ def raw():
 
 def clean():
     raw_ds = datasets.load_dataset("liaad/PTradutor", "raw")
+    clean_ds = drop_duplicates(raw_ds)
     clean_ds = huggingface_dataset_transform(raw_ds)
     clean_ds = huggingface_dataset_filter(clean_ds)
     clean_ds.push_to_hub("liaad/PTradutor", "clean")

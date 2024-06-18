@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import re
 
+import numpy as np
 from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
 
@@ -132,6 +133,10 @@ def has_valid_brackets(text):
     )
 
 
+def is_empty(text):
+    return len(text) == 0
+
+
 def huggingface_dataset_filter(dataset):
     return dataset.filter(
         lambda x: valid_n_tokens(f"{x['pt']} {x['en']}")
@@ -145,6 +150,7 @@ def huggingface_dataset_filter(dataset):
         and not has_invalid_end(x["pt"])
         and not has_more_than_three_points(x["en"])
         and not has_more_than_three_points(x["pt"])
+        and not is_empty(x["pt"])
         and has_valid_brackets(x["en"]),
         num_proc=mp.cpu_count(),
     )
@@ -202,3 +208,23 @@ def huggingface_dataset_transform(dataset):
         },
         num_proc=mp.cpu_count(),
     )
+
+
+def drop_duplicates(dataset, n_chars: int = 60):
+    """Drop all the rows that have the same start and end n_chars."""
+    def get_unique_idxs(dataset):
+        _, unique_starts_idxs = np.unique(dataset["start"], return_index=True, axis=0)
+        _, unique_ends_idxs = np.unique(dataset["end"], return_index=True, axis=0)
+        unique_idxs = set.intersection(set(unique_starts_idxs), set(unique_ends_idxs))
+        return unique_idxs
+    
+    temp = dataset.map(
+        lambda x: {"start": x["pt"][:n_chars], "end": x["pt"][-n_chars:]},
+        num_proc=mp.cpu_count(),
+    )
+    
+    unique_idxs_train = get_unique_idxs(temp["train"])
+    unique_idxs_test = get_unique_idxs(temp["test"])
+    dataset["train"] = dataset["train"].select(list(unique_idxs_train))
+    dataset["test"] = dataset["test"].select(list(unique_idxs_test))
+    return dataset
