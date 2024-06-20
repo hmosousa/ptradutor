@@ -7,40 +7,23 @@ from tqdm import tqdm
 
 from src.constants import DATA_PATH
 from src.process import (
+    drop_duplicates,
+    drop_duplicates_start_ends,
     huggingface_dataset_filter,
     huggingface_dataset_transform,
-    drop_duplicates,
-    valid_n_tokens,
-    MAX_N_TOKENS,
 )
 
 logging.basicConfig(level=logging.INFO)
 
 
 def raw():
-    texts = set()
     train, test = [], []
     idx = 0
     for filepath in DATA_PATH.glob("*.json"):
         logging.info(f"Formatting {filepath.stem}.")
         content = json.load(filepath.open())
-
         for _, info in tqdm(content.items()):
             split = info.pop("split")
-
-            # remove duplicates
-            if info["pt"].lower() in texts:
-                continue
-            texts.add(info["pt"].lower())
-
-            # remove if the text exceeds MAX_N_TOKENS
-            prompt = f"{info['pt']} {info['en']}"
-            if len(prompt) > MAX_N_TOKENS:  # to make it run faster
-                if not valid_n_tokens(
-                    f"{info['pt']} {info['en']}", min_n_tokens=0
-                ):  # leave some margin for extra tokens
-                    continue
-
             info["idx"] = idx
             idx += 1
             if split == "test":
@@ -52,22 +35,23 @@ def raw():
     logging.debug(f"Test: {len(test)}")
 
     logging.info("Pushing to Hugging Face Datasets.")
-    raw_ds = datasets.DatasetDict(
-        {
+    dataset = datasets.DatasetDict({
             "train": datasets.Dataset.from_list(train),
             "test": datasets.Dataset.from_list(test),
-        }
-    )
-
-    raw_ds.push_to_hub("liaad/PTradutor", "raw")
+    })
+    dataset.push_to_hub("liaad/PTradutor", "raw")
 
 
 def clean():
-    raw_ds = datasets.load_dataset("liaad/PTradutor", "raw")
-    clean_ds = drop_duplicates(raw_ds)
-    clean_ds = huggingface_dataset_transform(raw_ds)
-    clean_ds = huggingface_dataset_filter(clean_ds)
-    clean_ds.push_to_hub("liaad/PTradutor", "clean")
+    """Push the clean version of the dataset.
+    NOTE: It requires that the raw version is already pushed to the hub.
+    """
+    dataset = datasets.load_dataset("liaad/PTradutor", "raw")
+    dataset = drop_duplicates(dataset)
+    dataset = drop_duplicates_start_ends(dataset)
+    dataset = huggingface_dataset_transform(dataset)
+    dataset = huggingface_dataset_filter(dataset)
+    dataset.push_to_hub("liaad/PTradutor", "clean")
 
 
 def main(subset: str = "raw"):

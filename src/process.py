@@ -210,7 +210,18 @@ def huggingface_dataset_transform(dataset):
     )
 
 
-def drop_duplicates(dataset, n_chars: int = 60):
+
+def drop_duplicates(dataset):
+    """Drop all the rows that have the same start and end n_chars."""
+    _, unique_idxs_train = np.unique(dataset["train"]["pt"], return_index=True, axis=0)
+    _, unique_idxs_test = np.unique(dataset["test"]["pt"], return_index=True, axis=0)
+    dataset["train"] = dataset["train"].select(list(unique_idxs_train))
+    dataset["test"] = dataset["test"].select(list(unique_idxs_test))
+    return dataset
+
+
+
+def drop_duplicates_start_ends(dataset, n_chars: int = 60):
     """Drop all the rows that have the same start and end n_chars."""
     def get_unique_idxs(dataset):
         _, unique_starts_idxs = np.unique(dataset["start"], return_index=True, axis=0)
