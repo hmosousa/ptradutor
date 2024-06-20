@@ -48,11 +48,11 @@ def load_dsl_tl() -> Dict:
     dataset = datasets.load_dataset("LCA-PORVID/dsl_tl")
 
     test = dataset["test"]
-    test = test.filter(lambda x: x["label"] in [0, 1])
+    test = test.filter(lambda x: x["label"] in [0, 2])
     test = test["text"]
 
     train = dataset["train"]
-    train = train.filter(lambda x: x["label"] in [0, 1])
+    train = train.filter(lambda x: x["label"] in [0, 2])
     train = train["text"]
     data = {"default": {"train": train, "test": test}}
     return data
