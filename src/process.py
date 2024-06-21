@@ -4,14 +4,13 @@ import re
 import numpy as np
 from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
-from string import punctuation
-
 
 HTML_RE = re.compile(r"<[^>]+>")
 URL_RE = re.compile(
     r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#…])*"
 )
 HASHTAG_RE = re.compile(r"#(\w+)")
+QUOTE_SPACE_START_RE = re.compile(r"^\"\s")
 MENTION_RE = re.compile(r"@(\w+)")
 RETWEET_RE = re.compile(r"RT @(\w+):")
 COD_RE = re.compile(r"COD _ (\w+) ")
@@ -21,6 +20,8 @@ MORE_THAN_THREE_POINTS_RE = re.compile(r"\.{4,}")
 
 
 TOKENIZER = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
+
+VALID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzàáâãåāèéêëěėēîïíìįīĵłñńôöòóøōõšśûüùúūÿýžźżçćčñń!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~«»“”ºª€ \t\n\r\x0b\x0c"
 
 INVALID_START = [
     "List of recent changes",
@@ -35,6 +36,34 @@ INVALID_START = [
     "Home Page",
     "Copyright",
     "Results/Page",
+    "!",
+    "#",
+    "$",
+    "%",
+    "&",
+    "*",
+    "+",
+    ",",
+    "-",
+    ".",
+    "/",
+    ":",
+    ";",
+    "<",
+    "=",
+    ">",
+    "?",
+    "@",
+    "[",
+    "\\",
+    "]",
+    "^",
+    "_",
+    "`",
+    "{",
+    "|",
+    "}",
+    "~",
 ]
 
 INVALID_MIDDLE = [
@@ -135,12 +164,23 @@ def has_valid_brackets(text):
     )
 
 
+def has_valid_quotes(text):
+    return (
+        text.count('"') % 2 == 0
+        and text.count("“") == text.count("”")
+    )
+
+
 def is_empty(text):
     return len(text) == 0
 
 
 def has_invalid_character(text):
-    return any(char for char in text if not char.isalnum() and char not in punctuation)
+    for char in text:
+        if char.lower() not in VALID_CHARS:
+            print(char, text)
+            return True
+    return False
 
 
 def huggingface_dataset_filter(dataset):
@@ -157,8 +197,9 @@ def huggingface_dataset_filter(dataset):
         and not has_more_than_three_points(x["en"])
         and not has_more_than_three_points(x["pt"])
         and not is_empty(x["pt"])
-        and has_invalid_character(x["pt"])
-        and has_valid_brackets(x["en"]),
+        and not has_invalid_character(x["pt"])
+        and has_valid_brackets(x["pt"])
+        and has_valid_quotes(x["pt"]),
         num_proc=mp.cpu_count(),
     )
 
@@ -196,6 +237,10 @@ def remove_three_dashes(text):
     return THREE_DASH_RE.sub("", text).strip()
 
 
+def remove_quote_space_start(text):
+    return QUOTE_SPACE_START_RE.sub('"', text)
+
+
 def huggingface_dataset_transform(dataset):
     def _transform(text):
         text = remove_retweets(text)
@@ -206,6 +251,7 @@ def huggingface_dataset_transform(dataset):
         text = remove_cod_literature(text)
         text = remove_bullets(text)
         text = remove_three_dashes(text)
+        text = remove_quote_space_start(text)
         return text
 
     return dataset.map(

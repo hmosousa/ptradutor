@@ -14,6 +14,7 @@ from src.process import (
     remove_retweets,
     remove_three_dashes,
     remove_urls,
+    remove_quote_space_start,
     bad_translation,
     starts_with_month,
     valid_n_tokens,
@@ -181,5 +182,14 @@ def test_has_valid_brackets():
 
 
 def test_has_invalid_character():
-    assert has_invalid_character("This is a sentence with a ©")
+    assert has_invalid_character("©This is a sentence with a ©")
     assert has_invalid_character("𝗣𝗿𝗼𝗽𝗼𝘀𝘁𝗮𝘀 𝘀𝗲𝗹𝗲𝗰𝗶𝗼𝗻𝗮𝗱𝗮𝘀 𝗱𝗼 𝗢𝗽𝗲𝗻 𝗖𝗮𝗹𝗹 𝗜𝗻 𝗖𝗼𝗻𝗳𝗹𝗶𝗰𝘁 Já es")
+    assert not has_invalid_character("This is a valid sentence")
+    assert not has_invalid_character("O «Recodme» passou a ser")
+    assert not has_invalid_character("Há 10 anos, a 1 de outubro de 2010.")
+
+
+def test_remove_quote_space_start():
+    assert remove_quote_space_start('" This is a sentence with a quote"') == '"This is a sentence with a quote"'
+    assert remove_quote_space_start('" This is "a sentence with a quote"') == '"This is "a sentence with a quote"'
+    assert remove_quote_space_start('" This is " a sentence with a quote"') == '"This is " a sentence with a quote"'
