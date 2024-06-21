@@ -4,6 +4,8 @@ import re
 import numpy as np
 from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
+from string import punctuation
+
 
 HTML_RE = re.compile(r"<[^>]+>")
 URL_RE = re.compile(
@@ -137,6 +139,10 @@ def is_empty(text):
     return len(text) == 0
 
 
+def has_invalid_character(text):
+    return any(char for char in text if not char.isalnum() and char not in punctuation)
+
+
 def huggingface_dataset_filter(dataset):
     return dataset.filter(
         lambda x: valid_n_tokens(f"{x['pt']} {x['en']}")
@@ -151,6 +157,7 @@ def huggingface_dataset_filter(dataset):
         and not has_more_than_three_points(x["en"])
         and not has_more_than_three_points(x["pt"])
         and not is_empty(x["pt"])
+        and has_invalid_character(x["pt"])
         and has_valid_brackets(x["en"]),
         num_proc=mp.cpu_count(),
     )
@@ -210,7 +217,6 @@ def huggingface_dataset_transform(dataset):
     )
 
 
-
 def drop_duplicates(dataset):
     """Drop all the rows that have the same start and end n_chars."""
     _, unique_idxs_train = np.unique(dataset["train"]["pt"], return_index=True, axis=0)
@@ -220,20 +226,20 @@ def drop_duplicates(dataset):
     return dataset
 
 
-
 def drop_duplicates_start_ends(dataset, n_chars: int = 60):
     """Drop all the rows that have the same start and end n_chars."""
+
     def get_unique_idxs(dataset):
         _, unique_starts_idxs = np.unique(dataset["start"], return_index=True, axis=0)
         _, unique_ends_idxs = np.unique(dataset["end"], return_index=True, axis=0)
         unique_idxs = set.intersection(set(unique_starts_idxs), set(unique_ends_idxs))
         return unique_idxs
-    
+
     temp = dataset.map(
         lambda x: {"start": x["pt"][:n_chars], "end": x["pt"][-n_chars:]},
         num_proc=mp.cpu_count(),
     )
-    
+
     unique_idxs_train = get_unique_idxs(temp["train"])
     unique_idxs_test = get_unique_idxs(temp["test"])
     dataset["train"] = dataset["train"].select(list(unique_idxs_train))

@@ -19,6 +19,7 @@ from src.process import (
     valid_n_tokens,
     has_more_than_three_points,
     has_valid_brackets,
+    has_invalid_character,
 )
 
 
@@ -177,3 +178,8 @@ def test_has_valid_brackets():
     assert has_valid_brackets(
         "This is a sentence with (a closed parenthesis) and (an open parenthesis)"
     )
+
+
+def test_has_invalid_character():
+    assert has_invalid_character("This is a sentence with a ©")
+    assert has_invalid_character("𝗣𝗿𝗼𝗽𝗼𝘀𝘁𝗮𝘀 𝘀𝗲𝗹𝗲𝗰𝗶𝗼𝗻𝗮𝗱𝗮𝘀 𝗱𝗼 𝗢𝗽𝗲𝗻 𝗖𝗮𝗹𝗹 𝗜𝗻 𝗖𝗼𝗻𝗳𝗹𝗶𝗰𝘁 Já es")
