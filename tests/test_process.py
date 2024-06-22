@@ -15,6 +15,7 @@ from src.process import (
     remove_three_dashes,
     remove_urls,
     remove_quote_space_start,
+    remove_quote_space_end,
     bad_translation,
     starts_with_month,
     valid_n_tokens,
@@ -193,3 +194,9 @@ def test_remove_quote_space_start():
     assert remove_quote_space_start('" This is a sentence with a quote"') == '"This is a sentence with a quote"'
     assert remove_quote_space_start('" This is "a sentence with a quote"') == '"This is "a sentence with a quote"'
     assert remove_quote_space_start('" This is " a sentence with a quote"') == '"This is " a sentence with a quote"'
+
+
+def test_remove_quote_space_end():
+    assert remove_quote_space_end('This is a sentence with a quote "') == 'This is a sentence with a quote"'
+    assert remove_quote_space_end('This is "a sentence with a quote "') == 'This is "a sentence with a quote"'
+    assert remove_quote_space_end('This is " a sentence with a quote "') == 'This is " a sentence with a quote"'

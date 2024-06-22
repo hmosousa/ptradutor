@@ -11,6 +11,7 @@ URL_RE = re.compile(
 )
 HASHTAG_RE = re.compile(r"#(\w+)")
 QUOTE_SPACE_START_RE = re.compile(r"^\"\s")
+QUOTE_SPACE_END_RE = re.compile(r"\s\"$")
 MENTION_RE = re.compile(r"@(\w+)")
 RETWEET_RE = re.compile(r"RT @(\w+):")
 COD_RE = re.compile(r"COD _ (\w+) ")
@@ -74,12 +75,8 @@ INVALID_MIDDLE = [
     "(...)",
 ]
 
-
 INVALID_END = [
     " (",
-    "…",
-    "[…]",
-    "(…)",
 ]
 
 
@@ -165,10 +162,7 @@ def has_valid_brackets(text):
 
 
 def has_valid_quotes(text):
-    return (
-        text.count('"') % 2 == 0
-        and text.count("“") == text.count("”")
-    )
+    return text.count('"') % 2 == 0 and text.count("“") == text.count("”")
 
 
 def is_empty(text):
@@ -178,7 +172,6 @@ def is_empty(text):
 def has_invalid_character(text):
     for char in text:
         if char.lower() not in VALID_CHARS:
-            print(char, text)
             return True
     return False
 
@@ -241,6 +234,12 @@ def remove_quote_space_start(text):
     return QUOTE_SPACE_START_RE.sub('"', text)
 
 
+def remove_quote_space_end(text):
+    if text.endswith(' "'):
+        return text[:-2] + '"'
+    return text
+
+
 def huggingface_dataset_transform(dataset):
     def _transform(text):
         text = remove_retweets(text)
@@ -252,6 +251,7 @@ def huggingface_dataset_transform(dataset):
         text = remove_bullets(text)
         text = remove_three_dashes(text)
         text = remove_quote_space_start(text)
+        text = remove_quote_space_end(text)
         return text
 
     return dataset.map(
