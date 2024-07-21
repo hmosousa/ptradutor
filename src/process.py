@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import re
 
+import justext
 import numpy as np
 from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
@@ -265,10 +266,9 @@ def huggingface_dataset_transform(dataset):
 
 def drop_duplicates(dataset):
     """Drop all the rows that have the same start and end n_chars."""
-    _, unique_idxs_train = np.unique(dataset["train"]["pt"], return_index=True, axis=0)
-    _, unique_idxs_test = np.unique(dataset["test"]["pt"], return_index=True, axis=0)
-    dataset["train"] = dataset["train"].select(list(unique_idxs_train))
-    dataset["test"] = dataset["test"].select(list(unique_idxs_test))
+    _, unique_idxs_train = np.unique(dataset["pt"], return_index=True, axis=0)
+    unique_idxs_train.sort()
+    dataset = dataset.select(list(unique_idxs_train))
     return dataset
 
 
@@ -286,8 +286,19 @@ def drop_duplicates_start_ends(dataset, n_chars: int = 60):
         num_proc=mp.cpu_count(),
     )
 
-    unique_idxs_train = get_unique_idxs(temp["train"])
-    unique_idxs_test = get_unique_idxs(temp["test"])
-    dataset["train"] = dataset["train"].select(list(unique_idxs_train))
-    dataset["test"] = dataset["test"].select(list(unique_idxs_test))
+    unique_idxs_train = get_unique_idxs(temp)
+    dataset = dataset.select(list(unique_idxs_train))
     return dataset
+
+
+def is_justext_good_class(text):
+    paragraph = justext.justext(text, justext.get_stoplist("Portuguese"))[0]
+    return paragraph.class_type == "good"
+
+
+def drop_justext_bad_class(dataset):
+    """Drop all the entries that are demed bad by justext"""
+    return dataset.filter(
+        lambda x: is_justext_good_class(x["pt"]),
+        num_proc=mp.cpu_count(),
+    )
