@@ -18,28 +18,28 @@ logging.basicConfig(level=logging.INFO)
 
 
 def raw():
-    train, test = [], []
+    train, valid = [], []
     idx = 0
     for filepath in DATA_PATH.glob("*.json"):
         logging.info(f"Formatting {filepath.stem}.")
         content = json.load(filepath.open())
         for _, info in tqdm(content.items()):
-            split = info.pop("split")
+            info.pop("split")
             info["idx"] = idx
             idx += 1
             if info["source"] == "dsl_tl":
-                test.append(info)
+                valid.append(info)
             else:
                 train.append(info)
 
     logging.debug(f"Train: {len(train)}")
-    logging.debug(f"Test: {len(test)}")
+    logging.debug(f"Valid: {len(valid)}")
 
     logging.info("Pushing to Hugging Face Datasets.")
     dataset = datasets.DatasetDict(
         {
             "train": datasets.Dataset.from_list(train),
-            "test": datasets.Dataset.from_list(test),
+            "valid": datasets.Dataset.from_list(valid),
         }
     )
     dataset.push_to_hub("liaad/PTradutor", "raw")
@@ -54,11 +54,11 @@ def clean():
     trainset = drop_duplicates_start_ends(trainset)
     trainset = huggingface_dataset_transform(trainset)
     trainset = huggingface_dataset_filter(trainset)
-    testset = datasets.load_dataset("liaad/PTradutor", name="raw", split="test")
+    validset = datasets.load_dataset("liaad/PTradutor", name="raw", split="valid")
     dataset = datasets.DatasetDict(
         {
             "train": trainset,
-            "test": testset
+            "valid": validset
         }
     )
     dataset.push_to_hub("liaad/PTradutor", "clean")
@@ -70,11 +70,11 @@ def superclean():
     """
     trainset = datasets.load_dataset("liaad/PTradutor", name="clean", split="train")
     trainset = drop_justext_bad_class(trainset)
-    testset = datasets.load_dataset("liaad/PTradutor", name="clean", split="test")
+    validset = datasets.load_dataset("liaad/PTradutor", name="clean", split="valid")
     dataset = datasets.DatasetDict(
         {
             "train": trainset,
-            "test": testset
+            "valid": validset
         }
     )
     dataset.push_to_hub("liaad/PTradutor", "superclean")
