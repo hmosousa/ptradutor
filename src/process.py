@@ -23,7 +23,7 @@ MORE_THAN_THREE_POINTS_RE = re.compile(r"\.{4,}")
 
 TOKENIZER = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
 
-VALID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzàáâãåāèéêëěėēîïíìįīĵłñńôöòóøōõšśûüùúūÿýžźżçćčñń!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~«»“”ºª€ \t\n\r\x0b\x0c"
+VALID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzàáâãåāèéêëěėēîïíìįīĵłñńôöòóōõšśûüùúūÿýźçćčñń!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~«»“”ºª€ \t\n\r\x0b\x0c"
 
 INVALID_START = [
     "List of recent changes",
