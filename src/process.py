@@ -292,8 +292,10 @@ def drop_duplicates_start_ends(dataset, n_chars: int = 60):
 
 
 def is_justext_good_class(text):
-    paragraph = justext.justext(text, justext.get_stoplist("Portuguese"))[0]
-    return paragraph.class_type == "good"
+    paragraph = justext.justext(text, justext.get_stoplist("Portuguese"))
+    if len(paragraph) == 0:
+        return False
+    return paragraph[0].class_type == "good"
 
 
 def drop_justext_bad_class(dataset):

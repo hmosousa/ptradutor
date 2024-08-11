@@ -19,6 +19,7 @@ from src.process import (
     is_empty,
     starts_with_month,
     valid_n_tokens,
+    drop_justext_bad_class
 )
 
 N_PROC = mp.cpu_count()
@@ -80,30 +81,34 @@ def drop_misc(dataset):
 
 def compute_stats():
     print("Raw")
-    raw = datasets.load_dataset("liaad/PTradutor", "raw")
-    print_n_docs_by_domain(raw["train"])
+    raw = datasets.concatenate_datasets([datasets.load_dataset("liaad/PTradutor", "raw", split=split) for split in ["train", "valid"]])
+    print_n_docs_by_domain(raw)
+    
+    print("justext filter")
+    raw = drop_justext_bad_class(raw)
+    print_n_docs_by_domain(raw)    
     
     print("\nDuplicates and patterns")
     raw = drop_duplicates(raw)
     raw = drop_duplicates_start_ends(raw)
     raw = huggingface_dataset_transform(raw)
-    print_n_docs_by_domain(raw["train"])
+    print_n_docs_by_domain(raw)
 
     print("\nMax tokens")
     raw = drop_more_than_900_tokens(raw)
-    print_n_docs_by_domain(raw["train"])
+    print_n_docs_by_domain(raw)
 
     print("\nInvalid Chars")
     raw = drop_invalid_chars(raw)
-    print_n_docs_by_domain(raw["train"])
+    print_n_docs_by_domain(raw)
 
     print("\nPatterns")
     raw = drop_patterns(raw)
-    print_n_docs_by_domain(raw["train"])
+    print_n_docs_by_domain(raw)
 
     print("\nMISC")
     raw = drop_misc(raw)
-    print_n_docs_by_domain(raw["train"])
+    print_n_docs_by_domain(raw)
 
 
 def make_plot():
@@ -157,4 +162,4 @@ def make_plot():
 
 
 if __name__ == "__main__":
-    make_plot()
+    compute_stats()
