@@ -36344,7 +36344,7 @@ Howard
 Huambo	
 Hubble	
 Hudson	
-Hugo	
+u1537782	
 Humberto	
 Humphrey	
 Hungria	
@@ -37482,7 +37482,7 @@ Sortelha
 Sôr	
 Sotomayor	
 Soure	
-Sousa	
+	
 Sousel	
 Soutelo	
 Souto	

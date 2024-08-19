@@ -81,7 +81,7 @@ def drop_misc(dataset):
 
 def compute_stats():
     print("Raw")
-    raw = datasets.concatenate_datasets([datasets.load_dataset("liaad/PTradutor", "raw", split=split) for split in ["train", "valid"]])
+    raw = datasets.concatenate_datasets([datasets.load_dataset("u1537782/PTradutor", "raw", split=split) for split in ["train", "valid"]])
     print_n_docs_by_domain(raw)
     
     print("justext filter")

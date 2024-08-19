@@ -42,42 +42,42 @@ def raw():
             "valid": datasets.Dataset.from_list(valid),
         }
     )
-    dataset.push_to_hub("liaad/PTradutor", "raw")
+    dataset.push_to_hub("u1537782/PTradutor", "raw")
 
 
 def clean():
     """Push the clean version of the dataset.
     NOTE: It requires that the raw version is already pushed to the hub.
     """
-    trainset = datasets.load_dataset("liaad/PTradutor", name="raw", split="train")
+    trainset = datasets.load_dataset("u1537782/PTradutor", name="raw", split="train")
     trainset = drop_duplicates(trainset)
     trainset = drop_duplicates_start_ends(trainset)
     trainset = huggingface_dataset_transform(trainset)
     trainset = huggingface_dataset_filter(trainset)
-    validset = datasets.load_dataset("liaad/PTradutor", name="raw", split="valid")
+    validset = datasets.load_dataset("u1537782/PTradutor", name="raw", split="valid")
     dataset = datasets.DatasetDict(
         {
             "train": trainset,
             "valid": validset
         }
     )
-    dataset.push_to_hub("liaad/PTradutor", "clean")
+    dataset.push_to_hub("u1537782/PTradutor", "clean")
 
 
 def superclean():
     """Push the superclean version of the dataset.
     NOTE: It requires that the `clean` version is already pushed to the hub.
     """
-    trainset = datasets.load_dataset("liaad/PTradutor", name="clean", split="train")
+    trainset = datasets.load_dataset("u1537782/PTradutor", name="clean", split="train")
     trainset = drop_justext_bad_class(trainset)
-    validset = datasets.load_dataset("liaad/PTradutor", name="clean", split="valid")
+    validset = datasets.load_dataset("u1537782/PTradutor", name="clean", split="valid")
     dataset = datasets.DatasetDict(
         {
             "train": trainset,
             "valid": validset
         }
     )
-    dataset.push_to_hub("liaad/PTradutor", "superclean")
+    dataset.push_to_hub("u1537782/PTradutor", "superclean")
 
 
 def main(subset: str = "raw"):

@@ -62,7 +62,7 @@ def load_pt_vid() -> Dict:
     data = {}
     domains = ["journalistic", "legal", "literature", "politics", "social_media", "web"]
     for domain in domains:
-        dataset = datasets.load_dataset("liaad/PTVId", name=domain)
+        dataset = datasets.load_dataset("u1537782/PTVId", name=domain)
 
         train = dataset["train"]
         train = train.filter(lambda x: x["label"] == 0)
