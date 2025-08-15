@@ -54,5 +54,6 @@ If you use this work, please cite:
   year      = {2025},
   month     = {Apr},
   url       = {https://ojs.aaai.org/index.php/AAAI/article/view/34704},
-  doi       = {10.1609/aaai.v39i24.34704},
+  doi       = {10.1609/aaai.v39i24.34704}
+}
 ```
