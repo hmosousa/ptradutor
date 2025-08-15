@@ -38,3 +38,21 @@ For questions, suggestions, or collaborations, please contact the project mainta
 
 - **Project Maintainer:** u1537782 
 - **Email:** u1537782.o.@inesctec.pt
+
+## Citation
+
+If you use this work, please cite:
+
+```bibtex
+@article{Sousa_Almasian_Campos_Jorge_2025,
+  title     = {Tradutor: Building a Variety Specific Translation Model},
+  author    = {Sousa, Hugo and Almasian, Satya and Campos, Ricardo and Jorge, Alipio},
+  journal   = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {39},
+  number    = {24},
+  pages     = {25183--25191},
+  year      = {2025},
+  month     = {Apr},
+  url       = {https://ojs.aaai.org/index.php/AAAI/article/view/34704},
+  doi       = {10.1609/aaai.v39i24.34704},
+```
